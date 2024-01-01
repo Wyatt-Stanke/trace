@@ -35,7 +35,7 @@ local pixelsPerSecond = 3
 local cursor = Cursor:new()
 assert(cursor)
 cursor:moveTo(64, 64)
-cursor:setScale(1.5)
+-- cursor:setScale(1.5)
 cursor:setFillColor(gfx.kColorBlack)
 cursor:addSprite()
 cursor:setVisible(false)
@@ -170,7 +170,9 @@ end
 function playdate.update()
     UpdateDrawingText()
     gfx.pushContext()
-    cursor:updateVelocity(pixelsPerSecond)
+
+    local refreshRate = playdate.display.getRefreshRate()
+    cursor:updateVelocity(pixelsPerSecond / refreshRate)
 
     gfx.setColor(gfx.kColorBlack)
 
@@ -185,24 +187,8 @@ function playdate.update()
         -- Get the current point on the segment
         local point = getPointOnSegment(segment, nextSegment, segmentProgress / segmentLength)
 
-        -- In FPS
-        local refreshRate = playdate.display.getRefreshRate()
-
-        -- Calculate the number of segments to draw
-        local segmentsToDraw = math.ceil(pixelsPerSecond / segmentLength)
-
-        -- If the segment is shorter than the pixels per second
-        if segmentLength < pixelsPerSecond then
-            -- Draw more segments until the length drawn is equal to the pixels per second
-            while segmentLength < pixelsPerSecond do
-                drawingProgress = drawingProgress + 1
-                nextSegment = drawing.segments[drawingProgress + 1]
-                segmentLength = segmentLength + getLineLength(segment, nextSegment)
-            end
-        end
-
         -- Increment the segment progress
-        segmentProgress = segmentProgress + segmentLength * (1 / refreshRate) * segmentsToDraw
+        segmentProgress = segmentProgress + segmentLength * (1 / refreshRate)
         -- If we've reached the end of the segment
         if segmentProgress > segmentLength then
             drawingProgress = drawingProgress + 1
@@ -217,6 +203,9 @@ function playdate.update()
                 segmentProgress = 0
             end
         end
+
+        -- Draw the target
+        target:moveTo(point.x, point.y)
     end
 
 
