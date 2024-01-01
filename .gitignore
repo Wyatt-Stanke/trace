@@ -1,3 +1,5 @@
 /target
 .DS_Store
 *.pdx
+./converter/data/out
+./pointplotter/source/drawings
