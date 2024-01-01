@@ -1,0 +1,6 @@
+name=trā
+author=Stuff Company
+description=This is a test
+bundleId=com.stuff.trā
+buildNumber=1
+imagePath=images/

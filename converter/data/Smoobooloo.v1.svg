@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" width="400" height="331.5" viewBox="0 0 400 331.5">
+  <rect id="Decoration" y="211.5" width="400" height="120" style="stroke-width: 0px;"/>
+  <g id="Data" style="isolation: isolate;">
+    <text transform="translate(5.31 243.93)" style="fill: #fff; font-family: Arial-BoldMT, Arial; font-size: 20px; font-weight: 700; isolation: isolate;"><tspan x="0" y="0">#1 </tspan></text>
+    <text transform="translate(5.31 266.93)" style="fill: #fff; font-family: Arial-BoldMT, Arial; font-size: 20px; font-weight: 700; isolation: isolate;"><tspan x="0" y="0">Name: Smoobooloo</tspan></text>
+    <text transform="translate(5.31 289.93)" style="fill: #fff; font-family: Arial-BoldMT, Arial; font-size: 20px; font-weight: 700; isolation: isolate;"><tspan x="0" y="0">Difficulty: Easy</tspan></text>
+  </g>
+  <path d="M27,133.5c67-8,65-4,59-32s-55-22-5-44,119-14,119-14v60l-69,25v-43l-32-8s0-45,26-61S194,.5,194,.5h156l9,7v23h-27v-13l-24-1v17l11,16,20-4h29v-21l21,5v37.5h-94l-4-14.5-1-19-10-3-16,5s-20,22-20,50,4,39,14,39h43l8-29s40-41,54,0,11,66,11,66l-60,22-106-11s-24-32,0-32,0-24,0-24l-48,24-40,32-15-4-16,15,35,12h35l23-26-24-87,78-13,29,28.5,69,25.5" style="fill: none; stroke: #000;"/>
+</svg>
