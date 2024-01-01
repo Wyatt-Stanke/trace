@@ -9,15 +9,25 @@ function Target:new()
     ---@class VectorSprite
     local self = VectorSprite:new(
         {
-            -- Octagon (origin at center)
-            0, -5,
-            5, 0,
-            5, 5,
+            -- Octagon (point at top, origin at center)
+            -- Bottom point
             0, 5,
-            -5, 5,
+            -- Bottom right
+            3, 3,
+            -- Right
+            5, 0,
+            -- Top right
+            3, -3,
+            -- Top
+            0, -5,
+            -- Top left
+            -3, -3,
+            -- Left
             -5, 0,
-            -5, -5,
-            0, -5
+            -- Bottom left
+            -3, 3,
+            -- Bottom point
+            0, 5
         }
     )
     self.type = "target"

@@ -46,6 +46,7 @@ assert(target)
 target:setFillColor(gfx.kColorBlack)
 target:setFillPattern({ 0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA })
 target:setScale(1.5)
+target:setVisible(false)
 target:addSprite()
 
 local function getDrawing()
@@ -161,12 +162,14 @@ function StartDrawing()
     target:moveTo(firstPoint.x, firstPoint.y)
     started = true
     cursor:setVisible(true)
+    target:setVisible(true)
     tracingTimer:start()
 end
 
 function StopDrawing()
     started = false
     cursor:setVisible(false)
+    target:setVisible(false)
     tracingTimer:pause()
 end
 
