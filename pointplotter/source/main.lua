@@ -158,6 +158,7 @@ tracingTimer:pause()
 function StartDrawing()
     local firstPoint = getDrawing().segments[1]
     cursor:moveTo(firstPoint.x, firstPoint.y)
+    target:moveTo(firstPoint.x, firstPoint.y)
     started = true
     cursor:setVisible(true)
     tracingTimer:start()
@@ -168,6 +169,8 @@ function StopDrawing()
     cursor:setVisible(false)
     tracingTimer:pause()
 end
+
+local targetTetherLength = 50
 
 function playdate.update()
     UpdateDrawingText()
@@ -189,28 +192,38 @@ function playdate.update()
         -- Get the current point on the segment
         local point = getPointOnSegment(segment, nextSegment, segmentProgress / segmentLength)
 
+        local newSegmentProgress = segmentProgress
+        local newDrawingProgress = drawingProgress
+
         -- Increment the segment progress
-        segmentProgress = segmentProgress + segmentLength * (1 / refreshRate)
+        newSegmentProgress = newSegmentProgress + segmentLength * (1 / refreshRate)
         -- If we've reached the end of the segment
-        if segmentProgress > segmentLength then
-            drawingProgress = drawingProgress + 1
+        if newSegmentProgress > segmentLength then
+            newDrawingProgress = newDrawingProgress + 1
             -- If we've reached the end of the drawing
-            if drawingProgress > #drawing.segments - 1 then
+            if newDrawingProgress > #drawing.segments - 1 then
                 -- Reset the drawing progress
-                drawingProgress = 1
-                segmentProgress = 0
+                newDrawingProgress = 1
+                newSegmentProgress = 0
                 -- Stop the drawing
                 started = false
             else
-                segmentProgress = 0
+                newSegmentProgress = 0
             end
         end
 
-        -- Draw the target
-        target:moveTo(point.x, point.y)
+        -- Check if the target is within 10 pixels of the cursor
+        local cursorPosition = cursor:getPosition()
+        local targetPosition = target:getPosition()
+        local distance = getLineLength(cursorPosition, targetPosition)
+        if distance <= targetTetherLength then
+            -- Move the target
+            target:moveTo(point.x, point.y)
+            -- Update the drawing progress
+            drawingProgress = newDrawingProgress
+            segmentProgress = newSegmentProgress
+        end
     end
-
-
 
     gfx.popContext()
 
