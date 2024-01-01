@@ -156,6 +156,8 @@ tracingTimer.repeats = true
 tracingTimer:pause()
 
 function StartDrawing()
+    local firstPoint = getDrawing().segments[1]
+    cursor:moveTo(firstPoint.x, firstPoint.y)
     started = true
     cursor:setVisible(true)
     tracingTimer:start()
