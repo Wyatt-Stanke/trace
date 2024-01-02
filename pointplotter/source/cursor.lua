@@ -19,13 +19,18 @@ function Cursor:new()
     self.type = "cursor"
     self.wraps = true
 
-    function self:updateVelocity(pixelsPerSecond)
-        self:setVelocity(
-        -- X velocity
+    function self:getNewVelocity(pixelsPerSecond)
+        return {
+            -- X velocity
             pixelsPerSecond * math.sin(math.rad(self.angle)),
             -- Y velocity
             -pixelsPerSecond * math.cos(math.rad(self.angle))
-        )
+        }
+    end
+
+    function self:updateVelocity(pixelsPerSecond)
+        local velocity = self:getNewVelocity(pixelsPerSecond)
+        self:setVelocity(velocity[1], velocity[2])
     end
 
     return self
