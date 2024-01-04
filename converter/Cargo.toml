@@ -8,5 +8,5 @@ edition = "2021"
 [dependencies]
 eyre = "0.6.11"
 serde = { version = "1.0.194", features = ["derive"] }
-serde_json = "1.0.110"
+serde_json = "1.0.111"
 usvg = { version = "0.37.0", features = ["text"] }
