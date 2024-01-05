@@ -76,7 +76,10 @@ end
 --     "name": "drawing"
 -- }
 
-
+function UpdateDrawing()
+    gfx.clear()
+    UpdateDrawingText()
+end
 
 function IncrementCounter()
     currentDrawing = currentDrawing + 1
@@ -118,13 +121,34 @@ local font = gfx.font.new("fonts/Pedallica/font-pedallica-fun-14")
 gfx.setFont(font, "14")
 gfx.setLineWidth(5)
 
+local drawingTextSprite = gfx.sprite:new()
+assert(drawingTextSprite)
+drawingTextSprite:moveTo(4, 4)
+drawingTextSprite:addSprite()
+
+local controlsTextSprite = gfx.sprite:new()
+assert(controlsTextSprite)
+controlsTextSprite:moveTo(202, 360 - (4 + font:getHeight()))
+controlsTextSprite:addSprite()
+
+
 function UpdateDrawingText()
     local drawing = getDrawing();
     -- {name} -- {currentDrawing}/{#drawings}
     local drawingText = drawing.meta.name .. " -- " .. currentDrawing .. "/" .. #drawings
 
-    gfx.drawText(drawingText, 4, 4, font)
-    gfx.drawText("⬆️ Next ⬇️ Previous Ⓐ Start", 4, 240 - (4 + font:getHeight()), font)
+    local drawingTextImage = gfx.image.new(400, 240)
+    local controlsTextImage = gfx.image.new(400, 240)
+
+    gfx.pushContext(drawingTextImage)
+    gfx.drawText(drawingText, 0, 0, font)
+    gfx.popContext()
+    gfx.pushContext(controlsTextImage)
+    gfx.drawText("⬆️ Next ⬇️ Previous Ⓐ Start", 0, 0, font)
+    gfx.popContext()
+
+    drawingTextSprite:setImage(drawingTextImage)
+    controlsTextSprite:setImage(controlsTextImage)
 end
 
 gfx.sprite.setBackgroundDrawingCallback(function(x, y, width, height)
@@ -138,7 +162,6 @@ gfx.sprite.setBackgroundDrawingCallback(function(x, y, width, height)
     local expandedBbox = geom.rect.new(bbox.x - 3, bbox.y - 3, bbox.width + 6, bbox.height + 6)
     for i = 1, #tracingPoints do
         local point = tracingPoints[i]
-        print(point)
         if expandedBbox:containsPoint(point) then
             gfx.drawCircleAtPoint(point.x, point.y, 2)
         end
@@ -300,8 +323,8 @@ function drawAngleDifferenceWidget(difference)
         local lineThickness = clamp(playdate.easingFunctions.inOutCubic(math.abs(difference), 14, -6.5, arrowChangeTime),
             14 - 6.5, 14)
         local arrowHeadScale = clamp(
-            playdate.easingFunctions.inOutCubic(math.abs(difference), 0.5, 1.5, arrowChangeTime),
-            0.5, 2)
+            playdate.easingFunctions.inOutCubic(math.abs(difference), 0.25, 1.75, arrowChangeTime),
+            0.25, 2)
         local arrowHeadTransform = geom.affineTransform.new()
         arrowHeadTransform:rotate(bottomHalfCentered and 0 or 180)
         -- arrowHeadTransform:scale(1, bottomHalfCentered and 1 or -1)
@@ -325,12 +348,17 @@ function drawAngleDifferenceWidget(difference)
     end
 end
 
+local textImage = gfx.imageWithText
+
+UpdateDrawingText()
+
 function playdate.update()
-    UpdateDrawingText()
     gfx.pushContext()
 
     local refreshRate = playdate.display.getRefreshRate()
-    cursor:updateVelocity(pixelsPerSecond / refreshRate)
+    if started then
+        cursor:updateVelocity(pixelsPerSecond / refreshRate)
+    end
 
     gfx.setColor(gfx.kColorBlack)
 
@@ -384,4 +412,5 @@ function playdate.update()
     playdate.timer.updateTimers()
 
     drawAngleDifferenceWidget(-getAngleDifference(cursor, target))
+    playdate.drawFPS()
 end
