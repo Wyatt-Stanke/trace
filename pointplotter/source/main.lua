@@ -54,6 +54,7 @@ local function getDrawing()
     return drawings[currentDrawing]
 end
 
+-- TODO: Use the following 2 functions less
 local function getPointOnSegment(point1, point2, progress)
     local x = point1.x + (point2.x - point1.x) * progress
     local y = point1.y + (point2.y - point1.y) * progress
@@ -131,6 +132,18 @@ assert(controlsTextSprite)
 controlsTextSprite:moveTo(202, 360 - (4 + font:getHeight()))
 controlsTextSprite:addSprite()
 
+local background = gfx.image.new(400, 240)
+gfx.pushContext(background)
+gfx.setPattern({ 0x55, 0xEA, 0x57, 0xAA, 0x55, 0xEA, 0x57, 0xAA })
+getDrawing():draw()
+gfx.popContext()
+
+local backgroundSprite = gfx.sprite:new()
+assert(backgroundSprite)
+backgroundSprite:setImage(background)
+backgroundSprite:moveTo(200, 120)
+backgroundSprite:setZIndex(-1)
+backgroundSprite:addSprite()
 
 function UpdateDrawingText()
     local drawing = getDrawing();
@@ -151,24 +164,6 @@ function UpdateDrawingText()
     controlsTextSprite:setImage(controlsTextImage)
 end
 
-gfx.sprite.setBackgroundDrawingCallback(function(x, y, width, height)
-    local bbox = geom.rect.new(x, y, width, height)
-    gfx.pushContext()
-    gfx.setPattern({ 0x55, 0xEA, 0x57, 0xAA, 0x55, 0xEA, 0x57, 0xAA })
-    getDrawing():draw(bbox)
-    gfx.popContext()
-    gfx.pushContext()
-    gfx.setColor(gfx.kColorBlack)
-    local expandedBbox = geom.rect.new(bbox.x - 3, bbox.y - 3, bbox.width + 6, bbox.height + 6)
-    for i = 1, #tracingPoints do
-        local point = tracingPoints[i]
-        if expandedBbox:containsPoint(point) then
-            gfx.drawCircleAtPoint(point.x, point.y, 2)
-        end
-    end
-    gfx.popContext()
-end)
-
 -- How far off is the cursor from pointing at the target?
 -- negative = left, positive = right
 function getAngleDifference(cursor, target)
@@ -184,10 +179,16 @@ function getAngleDifference(cursor, target)
     return angle
 end
 
-local tracingInterval = 100
+local tracingInterval = 500
 local tracingTimer = playdate.timer.new(tracingInterval, function()
     if started then
-        table.insert(tracingPoints, cursor:getPosition())
+        local pos = cursor:getPosition()
+        table.insert(tracingPoints, pos)
+        -- Draw circle in the background
+        gfx.pushContext(background)
+        gfx.setColor(gfx.kColorBlack)
+        gfx.drawCircleAtPoint(pos.x, pos.y, 5)
+        gfx.popContext()
     end
 end)
 tracingTimer.repeats = true
@@ -220,7 +221,7 @@ function clamp(value, min, max)
     end
 end
 
-local targetTetherLength = 50
+local targetTetherLength = 10
 
 local textImage = gfx.imageWithText
 
@@ -238,46 +239,60 @@ function playdate.update()
 
     if started then
         local drawing = getDrawing()
-        -- Get the current segment
-        local segment = drawing.segments[drawingProgress]
-        local nextSegment = drawing.segments[drawingProgress + 1]
+        local addedLength = 0
+        while addedLength < pixelsPerSecond / refreshRate do
+            -- Get the current segment
+            local segment = drawing.segments[drawingProgress]
+            local nextSegment = drawing.segments[drawingProgress + 1]
 
-        -- Get the length of the current segment
-        local segmentLength = getLineLength(segment, nextSegment)
-        -- Get the current point on the segment
-        local point = getPointOnSegment(segment, nextSegment, segmentProgress / segmentLength)
+            -- Get the length of the current segment
+            local segmentLength = getLineLength(segment, nextSegment)
+            -- Get the current point on the segment
+            local oldPoint = getPointOnSegment(segment, nextSegment, segmentProgress / segmentLength)
 
-        local newSegmentProgress = segmentProgress
-        local newDrawingProgress = drawingProgress
+            local newSegmentProgress = segmentProgress
+            local newDrawingProgress = drawingProgress
 
-        -- Increment the segment progress
-        newSegmentProgress = newSegmentProgress + segmentLength * (1 / refreshRate)
-        -- If we've reached the end of the segment
-        if newSegmentProgress > segmentLength then
-            newDrawingProgress = newDrawingProgress + 1
-            -- If we've reached the end of the drawing
-            if newDrawingProgress > #drawing.segments - 1 then
-                -- Reset the drawing progress
-                newDrawingProgress = 1
-                newSegmentProgress = 0
-                -- Stop the drawing
-                started = false
+            -- Increment the segment progress
+            newSegmentProgress = newSegmentProgress + segmentLength * (1 / refreshRate)
+            -- If we've reached the end of the segment
+            if newSegmentProgress > segmentLength then
+                newDrawingProgress = newDrawingProgress + 1
+                -- If we've reached the end of the drawing
+                if newDrawingProgress > #drawing.segments - 1 then
+                    -- Reset the drawing progress
+                    newDrawingProgress = 1
+                    newSegmentProgress = 0
+                    -- Stop the drawing
+                    started = false
+                else
+                    newSegmentProgress = 0
+                end
+            end
+
+            segment = drawing.segments[drawingProgress]
+            nextSegment = drawing.segments[drawingProgress + 1]
+            segmentLength = getLineLength(segment, nextSegment)
+            local newPoint = getPointOnSegment(segment, nextSegment, newSegmentProgress / segmentLength)
+
+            -- Check if the target is within 10 pixels of the cursor
+            local cursorPosition = cursor:getPosition()
+            local targetPosition = target:getPosition()
+            local distance = getLineLength(cursorPosition, targetPosition)
+            addedLength += getLineLength(oldPoint, newPoint)
+            if distance <= targetTetherLength then
+                -- Update the drawing progress
+                drawingProgress = newDrawingProgress
+                segmentProgress = newSegmentProgress
             else
-                newSegmentProgress = 0
+                break
             end
         end
-
-        -- Check if the target is within 10 pixels of the cursor
-        local cursorPosition = cursor:getPosition()
-        local targetPosition = target:getPosition()
-        local distance = getLineLength(cursorPosition, targetPosition)
-        if distance <= targetTetherLength then
-            -- Move the target
-            target:moveTo(point.x, point.y)
-            -- Update the drawing progress
-            drawingProgress = newDrawingProgress
-            segmentProgress = newSegmentProgress
-        end
+        local segment = drawing.segments[drawingProgress]
+        local nextSegment = drawing.segments[drawingProgress + 1]
+        local segmentLength = getLineLength(segment, nextSegment)
+        local point = getPointOnSegment(segment, nextSegment, segmentProgress / segmentLength)
+        target:moveTo(point.x, point.y)
     end
 
     gfx.popContext()

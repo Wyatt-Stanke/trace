@@ -5,23 +5,6 @@ local geom <const> = playdate.geometry
 local ds <const> = playdate.datastore
 local gfx <const> = playdate.graphics
 
--- Is a line partially contained in a rectangle?
-function lineInRect(line, rect)
-    -- TODO: What? I don't fully know why this is working.
-    --       For some reason, the drawing is being drawn fine even though the
-    --       intersection algorithm isn't correct.
-    -- Is either point in the rectangle?
-    local x1, y1, x2, y2 = line:unpack()
-    if rect:containsPoint(x1, y1) then
-        return true
-    end
-    -- -- Does the line intersect any of the rectangle's sides?
-    -- local intersects, _ = line:intersectsRect(rect);
-    -- if intersects then
-    --     return true
-    -- end
-end
-
 -- Drawing load function
 function Drawing.load(name)
     local self = Drawing:new()
@@ -69,19 +52,10 @@ function Drawing:new()
         end
     end
 
-    -- Draw a segment of the drawing in a bounding box
-    function drawSegment(segment, bbox)
-        if lineInRect(segment, bbox) then
-            gfx.drawLine(segment)
-        end
-    end
-
-    function self:draw(bbox)
-        gfx.setClipRect(bbox)
+    function self:draw()
         for i = 1, #self.segments do
-            drawSegment(self.segments[i], bbox)
+            gfx.drawLine(self.segments[i])
         end
-        gfx.clearClipRect()
     end
 
     return self
