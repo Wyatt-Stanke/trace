@@ -133,10 +133,15 @@ controlsTextSprite:moveTo(202, 360 - (4 + font:getHeight()))
 controlsTextSprite:addSprite()
 
 local background = gfx.image.new(400, 240)
-gfx.pushContext(background)
-gfx.setPattern({ 0x55, 0xEA, 0x57, 0xAA, 0x55, 0xEA, 0x57, 0xAA })
-getDrawing():draw()
-gfx.popContext()
+
+function playdate.BButtonDown()
+    if started then
+        gfx.pushContext(background)
+        gfx.setPattern({ 0x55, 0xEA, 0x57, 0xAA, 0x55, 0xEA, 0x57, 0xAA })
+        getDrawing():draw()
+        gfx.popContext()
+    end
+end
 
 local backgroundSprite = gfx.sprite:new()
 assert(backgroundSprite)
@@ -157,7 +162,7 @@ function UpdateDrawingText()
     gfx.drawText(drawingText, 0, 0, font)
     gfx.popContext()
     gfx.pushContext(controlsTextImage)
-    gfx.drawText("⬆️ Next ⬇️ Previous Ⓐ Start", 0, 0, font)
+    gfx.drawText("⬆️ Next ⬇️ Previous Ⓐ Start Ⓑ Background", 0, 0, font)
     gfx.popContext()
 
     drawingTextSprite:setImage(drawingTextImage)
@@ -209,6 +214,14 @@ function StopDrawing()
     cursor:setVisible(false)
     target:setVisible(false)
     tracingTimer:pause()
+    gfx.pushContext(background)
+    gfx.setPattern({ 0x55, 0xEA, 0x57, 0xAA, 0x55, 0xEA, 0x57, 0xAA })
+    getDrawing():draw()
+    gfx.setColor(gfx.kColorBlack)
+    for i = 1, #tracingPoints do
+        gfx.drawCircleAtPoint(tracingPoints[i].x, tracingPoints[i].y, 5)
+    end
+    gfx.popContext()
 end
 
 function clamp(value, min, max)
@@ -264,7 +277,7 @@ function playdate.update()
                     newDrawingProgress = 1
                     newSegmentProgress = 0
                     -- Stop the drawing
-                    started = false
+                    StopDrawing()
                 else
                     newSegmentProgress = 0
                 end
